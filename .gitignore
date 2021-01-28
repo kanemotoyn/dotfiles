@@ -1,11 +1,19 @@
-# Compiled
-*.elc
+# all ignore
+/*
+/.**
 
-# Packaging
-.cask
+# not ignore
 
-# Backup files
-*~
+## emacs
+!/.emacs.d/
+/.emacs.d/**
+!/.emacs.d/init.el
 
-# Undo-tree save-files
-*.~undo-tree
+## zsh
+!/.zshrc
+!/.zshenv
+
+# other
+!/READOME.md
+!/LICENSE
+!/gitignore
