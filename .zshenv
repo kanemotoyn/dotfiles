@@ -4,6 +4,5 @@ export PATH="$HOME/.cargo/bin:$PATH"
 export JAVA_HOME=`/usr/libexec/java_home -v 1.8`
 # java11
 #export JAVA_HOME=`/usr/libexec/java_home -v 11`
+export PATH="$HOME/.local/flutter/bin:$PATH"
 
-export DENO_INSTALL="$HOME/.deno"
-export PATH="$DENO_INSTALL/bin:$PATH"
