@@ -19,7 +19,7 @@ setopt pushd_ignore_dups # auto_pushdで重複するディレクトリは記録�
 
 disable r # build-in r commandを無効化(直前コマンドを再実行機能を無効化)
 setopt ignoreeof # ctrl + Dでログアウトしない。
-fpath=(~/.zsh $fpath) # denoの補完を有効にするために追加 https://deno.land/manual/getting_started/setup_your_environment
+fpath=( ~/.zsh "${fpath[@]}" ) # denoの補完を有効にするために追加 https://deno.land/manual/getting_started/setup_your_environment
 
 : "Ctrl-Yで上のディレクトリに移動できる" && {
     function cd-up { zle push-line && LBUFFER='builtin cd ..' && zle accept-line }
@@ -38,30 +38,38 @@ fpath=(~/.zsh $fpath) # denoの補完を有効にするために追加 https://d
     # see http://qiita.com/mollifier/items/1a9126b2200bcbaf515f
 }
 : "sshコマンド補完を~/.ssh/configから行う" && {
-    function _ssh { compadd `fgrep 'Host ' ~/.ssh/config_* | grep -v '*' |  awk '{print $2}' | sort` }
+    function _ssh { compadd $(fgrep 'Host ' ~/.ssh/config_* | grep -v '*' |  awk '{print $2}' | sort) }
     compdef mosh=ssh
 }
 : "Emacsデーモンを使用して、Emacsを立ち上げる" && {
     function emacsdaemon() {
-        if [[ 0 -eq `ps ax | grep Emacs | grep daemon | wc -l` ]] emacs --daemon
-           #emacsclient -t $*  # CUIのオプションは {-t} or {-nw}どちらでもOK
-           emacsclient -c $* # GUI
+        if (( 0 == $(ps ax | grep Emacs | grep daemon | wc -l) )); then
+            emacs --daemon
+        fi
+        #emacsclient -t "$@"  # CUIのオプションは`-t`, `-nw`どちらでもOK
+        emacsclient -c "$@" # GUI
     }
 }
 
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}' # 大文字、小文字を区別せず補完する
 zstyle ':completion:*' insert-tab false # 何も入力されていないときにTabを挿入しない
 
-## Application Shortcuts
-alias emacs="/Applications/Emacs.app/Contents/MacOS/Emacs"
-alias emacsclient="/Applications/Emacs.app/Contents/MacOS/bin/emacsclient"
+## 野良ビルドしたemacs-appの設定
+# 1. インラインパッチを当てたemacsのビルド（MacOS）
+# https://qiita.com/takaxp/items/e07bb286d80fa9dd8e05
+# シンボリックリンクを作成する。
+# $ ln -si ~/.local/build/emacs/emacs_ns/emacs-27.2/nextstep/Emacs.app /Applications 
+# エイリアス登録する。
+alias emacs='/Applications/Emacs.app/Contents/MacOS/Emacs'
+alias emacsclient='/Applications/Emacs.app/Contents/MacOS/bin/emacsclient'
+
 
 ## Preparing zsh for extension
 ## Create a ".zsh" folder in advance.
 ## $ mkdir ~/.zsh
 if [[ -d ~/.zsh/zsh-completions/src ]]; then
     # https://github.com/zsh-users/zsh-completions
-    fpath=(~/.zsh/zsh-completions/src $fpath)
+    fpath=( ~/.zsh/zsh-completions/src "${fpath[@]}" )
 fi
 
 if [[ -f ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
@@ -83,24 +91,24 @@ if [[ -f ~/.zsh/zsh-abbrev-alias/abbrev-alias.plugin.zsh ]]; then
     # https://github.com/momo-lab/zsh-abbrev-alias
     # https://github.com/momo-lab/zsh-abbrev-alias/blob/master/README.md
     source ~/.zsh/zsh-abbrev-alias/abbrev-alias.plugin.zsh
-    abbrev-alias ec="emacs --batch -f batch-byte-compile ~/.emacs.d/init.el"
-    abbrev-alias ekill="emacsclient -e '(kill-emacs)'"
-    abbrev-alias e="emacsclient -c $*"
-    abbrev-alias enw="emacsclient -t $*"
-    abbrev-alias gpl="git pull"
-    abbrev-alias gps="git push"
-    abbrev-alias gco="git commit -av"
-    abbrev-alias ga="git add -A"
-    abbrev-alias gs="git status -s"
-    abbrev-alias tree="exa -T"
-    abbrev-alias gist="gh gist"
-    abbrev-alias -g G="| grep"
-    abbrev-alias -g and="|"
+    abbrev-alias ec='emacs --batch -f batch-byte-compile ~/.emacs.d/init.el'
+    abbrev-alias ekill='emacsclient -e "(kill-emacs)"'
+    abbrev-alias e='emacsclient -c $*'
+    abbrev-alias enw='emacsclient -t $*'
+    abbrev-alias gpl='git pull'
+    abbrev-alias gps='git push'
+    abbrev-alias gco='git commit -av'
+    abbrev-alias ga='git add -A'
+    abbrev-alias gs='git status -s'
+    abbrev-alias tree='exa -T'
+    abbrev-alias gist='gh gist'
+    abbrev-alias -g G='| grep'
+    abbrev-alias -g and='|'
 fi
 
 if [[ -f ~/.fzf.zsh ]]; then
     # fzf install and zsh keybind setup
     # $ brew install fzf
     # $ $(brew --prefix)/opt/fzf/install
-    [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+    source ~/.fzf.zsh
 fi
